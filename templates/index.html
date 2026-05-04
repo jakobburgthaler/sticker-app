@@ -1,0 +1,19 @@
+<h1>Sticker App</h1>
+
+<form action="/add" method="post">
+  <input name="stickers" placeholder="1,2,3">
+  <button>Hinzufügen</button>
+</form>
+
+<form action="/trade" method="post">
+  Gebe ab: <input name="give"><br>
+  Bekomme: <input name="receive"><br>
+  <button>Tauschen</button>
+</form>
+
+<a href="/duplicates">Doppelte anzeigen</a>
+
+<h2>Sammlung</h2>
+{% for n,c in data %}
+<p>{{n}} : {{c}}</p>
+{% endfor %}
