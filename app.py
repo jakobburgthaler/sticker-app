@@ -171,8 +171,6 @@ def confirm_trade(trade_id):
 
     c.execute("SELECT give, receive FROM trades WHERE id=?", (trade_id,))
     trade = c.fetchone()
-if not trade:
-    return "❌ Trade nicht gefunden"
 
     give = [x.strip() for x in trade[0].split(",")]
     receive = [x.strip() for x in trade[1].split(",")]
