@@ -33,6 +33,8 @@ STICKER_INFO = {
 
 @app.route("/")
 def index():
+    team_filter = request.args.get("team")
+
     conn = get_db()
     c = conn.cursor()
     c.execute("SELECT * FROM stickers")
@@ -42,6 +44,7 @@ def index():
     data = {n: c for n, c in rows}
 
     table = []
+    teams = set()
 
     for i in range(1, MAX_STICKER + 1):
         num = str(i)
@@ -55,6 +58,10 @@ def index():
             color = "yellow"
 
         info = STICKER_INFO.get(num, {"team": "Unbekannt", "name": "-"})
+        teams.add(info["team"])
+
+        if team_filter and info["team"] != team_filter:
+            continue
 
         table.append({
             "num": num,
@@ -64,7 +71,7 @@ def index():
             "name": info["name"]
         })
 
-    return render_template("index.html", table=table)
+    return render_template("index.html", table=table, teams=sorted(teams), selected_team=team_filter)
 
 @app.route("/add", methods=["POST"])
 def add():
@@ -117,6 +124,39 @@ def reset():
     conn = get_db()
     c = conn.cursor()
     c.execute("DELETE FROM stickers")
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+@app.route("/trade", methods=["POST"])
+def trade():
+    give = [x.strip() for x in request.form["give"].split(",")]
+    receive = [x.strip() for x in request.form["receive"].split(",")]
+
+    conn = get_db()
+    c = conn.cursor()
+
+    # Prüfen
+    for n in give:
+        c.execute("SELECT count FROM stickers WHERE number=?", (n,))
+        row = c.fetchone()
+        if not row or row[0] <= 1:
+            return f"❌ Sticker {n} nicht doppelt!"
+
+    # Abziehen
+    for n in give:
+        c.execute("UPDATE stickers SET count=count-1 WHERE number=?", (n,))
+
+    # Hinzufügen
+    for n in receive:
+        c.execute("SELECT count FROM stickers WHERE number=?", (n,))
+        row = c.fetchone()
+        if row:
+            c.execute("UPDATE stickers SET count=count+1 WHERE number=?", (n,))
+        else:
+            c.execute("INSERT INTO stickers VALUES (?,?)", (n, 1))
+
     conn.commit()
     conn.close()
 
