@@ -12,9 +12,9 @@
 </form>
 
 <table border="1">
-{% for i in range(0, table|length, 10) %}
+{% for i in range(0, table|length, 100) %}
 <tr>
-  {% for j in range(10) %}
+  {% for j in range(100) %}
     {% if i+j < table|length %}
       <td style="background-color: {{table[i+j].color}}">
         {{table[i+j].num}}<br>
