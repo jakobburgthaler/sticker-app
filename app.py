@@ -7,6 +7,12 @@ app = Flask(__name__)
 
 MAX_STICKER = 920  # anpassen!
 
+conn = get_db()
+c = conn.cursor()
+c.execute("SELECT * FROM trades WHERE status='pending'")
+trades = c.fetchall()
+conn.close()
+
 def get_db():
     return sqlite3.connect("stickers.db")
 
@@ -158,7 +164,6 @@ def trade():
 
     return redirect("/")
 
-app.run(host="0.0.0.0", port=10000)
 
 @app.route("/confirm_trade/<int:trade_id>")
 def confirm_trade(trade_id):
@@ -207,3 +212,5 @@ def delete_trade(trade_id):
     conn.commit()
     conn.close()
     return redirect("/")
+
+app.run(host="0.0.0.0", port=10000)
