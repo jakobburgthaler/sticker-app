@@ -7,12 +7,6 @@ app = Flask(__name__)
 
 MAX_STICKER = 920  # anpassen!
 
-conn = get_db()
-c = conn.cursor()
-c.execute("SELECT * FROM trades WHERE status='pending'")
-trades = c.fetchall()
-conn.close()
-
 def get_db():
     return sqlite3.connect("stickers.db")
 
@@ -56,6 +50,11 @@ def index():
     c = conn.cursor()
     c.execute("SELECT * FROM stickers")
     rows = c.fetchall()
+
+    # 🔥 HIER hinzufügen
+    c.execute("SELECT * FROM trades WHERE status='pending'")
+    trades = c.fetchall()
+
     conn.close()
 
     data = {n: c for n, c in rows}
@@ -172,6 +171,8 @@ def confirm_trade(trade_id):
 
     c.execute("SELECT give, receive FROM trades WHERE id=?", (trade_id,))
     trade = c.fetchone()
+if not trade:
+    return "❌ Trade nicht gefunden"
 
     give = [x.strip() for x in trade[0].split(",")]
     receive = [x.strip() for x in trade[1].split(",")]
@@ -213,4 +214,5 @@ def delete_trade(trade_id):
     conn.close()
     return redirect("/")
 
-app.run(host="0.0.0.0", port=10000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
