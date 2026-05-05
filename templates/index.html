@@ -1,19 +1,35 @@
-<h1>Sticker App</h1>
+<h1>Sticker Manager</h1>
 
 <form action="/add" method="post">
-  <input name="stickers" placeholder="1,2,3">
+  <input name="stickers" placeholder="z.B. 1,2,3">
   <button>Hinzufügen</button>
 </form>
 
-<form action="/trade" method="post">
-  Gebe ab: <input name="give"><br>
-  Bekomme: <input name="receive"><br>
-  <button>Tauschen</button>
-</form>
+<a href="/reset">⚠️ Reset</a>
 
-<a href="/duplicates">Doppelte anzeigen</a>
+<table border="1">
+<tr>
+  <th>Nr</th>
+  <th>Team</th>
+  <th>Name</th>
+  <th>Anzahl</th>
+  <th>Aktion</th>
+</tr>
 
-<h2>Sammlung</h2>
-{% for n,c in data %}
-<p>{{n}} : {{c}}</p>
+{% for s in table %}
+<tr style="background-color: {{s.color}}">
+  <td>{{s.num}}</td>
+  <td>{{s.team}}</td>
+  <td>{{s.name}}</td>
+  <td>{{s.count}}</td>
+  <td>
+    {% if s.count > 0 %}
+    <form action="/delete" method="post">
+      <input type="hidden" name="num" value="{{s.num}}">
+      <button>Löschen</button>
+    </form>
+    {% endif %}
+  </td>
+</tr>
 {% endfor %}
+</table>
