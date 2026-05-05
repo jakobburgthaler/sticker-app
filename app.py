@@ -1,9 +1,11 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 
+RESET_PASSWORD = "0408"
+
 app = Flask(__name__)
 
-MAX_STICKER = 700  # anpassen!
+MAX_STICKER = 920  # anpassen!
 
 def get_db():
     return sqlite3.connect("stickers.db")
@@ -105,13 +107,19 @@ def delete():
 
     return redirect("/")
 
-@app.route("/reset")
+@app.route("/reset", methods=["POST"])
 def reset():
+    password = request.form.get("password")
+
+    if password != RESET_PASSWORD:
+        return "❌ Falsches Passwort!"
+
     conn = get_db()
     c = conn.cursor()
     c.execute("DELETE FROM stickers")
     conn.commit()
     conn.close()
+
     return redirect("/")
 
 app.run(host="0.0.0.0", port=10000)
