@@ -42,3 +42,21 @@
   Ich bekomme: <input name="receive"><br>
   <button>Tauschen</button>
 </form>
+
+conn = get_db()
+c = conn.cursor()
+c.execute("SELECT * FROM trades WHERE status='pending'")
+trades = c.fetchall()
+conn.close()
+
+<h2>⏳ Offene Tausch-Deals</h2>
+
+{% for t in trades %}
+  <div style="border:1px solid black; margin:5px; padding:5px;">
+    <b>Ich gebe:</b> {{t[1]}}<br>
+    <b>Ich bekomme:</b> {{t[2]}}<br>
+
+    <a href="/confirm_trade/{{t[0]}}">✅ Bestätigen</a>
+    <a href="/delete_trade/{{t[0]}}">❌ Löschen</a>
+  </div>
+{% endfor %}

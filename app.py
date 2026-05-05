@@ -13,12 +13,23 @@ def get_db():
 def init_db():
     conn = get_db()
     c = conn.cursor()
+
     c.execute("""
         CREATE TABLE IF NOT EXISTS stickers (
             number TEXT PRIMARY KEY,
             count INTEGER
         )
     """)
+
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS trades (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            give TEXT,
+            receive TEXT,
+            status TEXT
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -71,7 +82,7 @@ def index():
             "name": info["name"]
         })
 
-    return render_template("index.html", table=table, teams=sorted(teams), selected_team=team_filter)
+    return render_template("index.html", table=table, teams=sorted(teams), selected_team=team_filter, trades=trades)
 
 @app.route("/add", methods=["POST"])
 def add():
@@ -131,18 +142,41 @@ def reset():
 
 @app.route("/trade", methods=["POST"])
 def trade():
-    give = [x.strip() for x in request.form["give"].split(",")]
-    receive = [x.strip() for x in request.form["receive"].split(",")]
+    give = request.form["give"]
+    receive = request.form["receive"]
 
     conn = get_db()
     c = conn.cursor()
+
+    c.execute(
+        "INSERT INTO trades (give, receive, status) VALUES (?, ?, ?)",
+        (give, receive, "pending")
+    )
+
+    conn.commit()
+    conn.close()
+
+    return redirect("/")
+
+app.run(host="0.0.0.0", port=10000)
+
+@app.route("/confirm_trade/<int:trade_id>")
+def confirm_trade(trade_id):
+    conn = get_db()
+    c = conn.cursor()
+
+    c.execute("SELECT give, receive FROM trades WHERE id=?", (trade_id,))
+    trade = c.fetchone()
+
+    give = [x.strip() for x in trade[0].split(",")]
+    receive = [x.strip() for x in trade[1].split(",")]
 
     # Prüfen
     for n in give:
         c.execute("SELECT count FROM stickers WHERE number=?", (n,))
         row = c.fetchone()
         if not row or row[0] <= 1:
-            return f"❌ Sticker {n} nicht doppelt!"
+            return f"❌ {n} nicht doppelt!"
 
     # Abziehen
     for n in give:
@@ -157,9 +191,19 @@ def trade():
         else:
             c.execute("INSERT INTO stickers VALUES (?,?)", (n, 1))
 
+    # Status ändern
+    c.execute("UPDATE trades SET status='done' WHERE id=?", (trade_id,))
+
     conn.commit()
     conn.close()
 
     return redirect("/")
 
-app.run(host="0.0.0.0", port=10000)
+@app.route("/delete_trade/<int:trade_id>")
+def delete_trade(trade_id):
+    conn = get_db()
+    c = conn.cursor()
+    c.execute("DELETE FROM trades WHERE id=?", (trade_id,))
+    conn.commit()
+    conn.close()
+    return redirect("/")
