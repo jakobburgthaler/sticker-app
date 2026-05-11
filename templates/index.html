@@ -1,113 +1,191 @@
-<h1>Sticker Manager</h1>
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Panini Sticker Manager</title>
+
+    <style>
+
+        body {
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        .team-row {
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(20, 1fr);
+            gap: 4px;
+        }
+
+        .cell {
+            padding: 8px;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 12px;
+            color: black;
+        }
+
+        .red {
+            background: #ff6b6b;
+        }
+
+        .green {
+            background: #51cf66;
+        }
+
+        .yellow {
+            background: #ffd43b;
+        }
+
+        .blue {
+            background: #4dabf7;
+        }
+
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        .trade-box {
+            border: 1px solid black;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>🏆 Panini Sticker Manager</h1>
 
 <h2>Sticker hinzufügen</h2>
 
 <form action="/add" method="post">
 
-<select name="team">
-{% for key, team in sticker_data.items() %}
-  <option value="{{key}}">{{team.team}}</option>
-{% endfor %}
-</select>
+    <select name="team">
 
-<select name="number">
-{% for i in range(1,21) %}
-  <option value="{{i}}">{{i}}</option>
-{% endfor %}
-</select>
+        {% for key, team in sticker_data.items() %}
 
-<button>Hinzufügen</button>
+        <option value="{{key}}">
+            {{team.team}}
+        </option>
+
+        {% endfor %}
+
+    </select>
+
+    <select name="number">
+
+        {% for i in range(1,21) %}
+
+        <option value="{{i}}">
+            {{i}}
+        </option>
+
+        {% endfor %}
+
+    </select>
+
+    <button>Hinzufügen</button>
 
 </form>
 
-<h3>Reset</h3>
+<hr>
+
+<h2>🔄 Neuer Tausch</h2>
+
+<form action="/trade" method="post">
+
+    <input name="give" placeholder="Ich gebe z.B. GER1,AUT2">
+
+    <input name="receive" placeholder="Ich bekomme z.B. BRA5">
+
+    <button>Tausch speichern</button>
+
+</form>
+
+<hr>
+
+<h2>⏳ Offene Tausch-Deals</h2>
+
+{% for t in trades %}
+
+<div class="trade-box">
+
+    <b>Ich gebe:</b> {{t[1]}}<br>
+    <b>Ich bekomme:</b> {{t[2]}}<br><br>
+
+    <a href="/confirm_trade/{{t[0]}}">
+        ✅ Bestätigen
+    </a>
+
+    <a href="/delete_trade/{{t[0]}}">
+        ❌ Löschen
+    </a>
+
+</div>
+
+{% endfor %}
+
+<hr>
+
+<h2>⚠️ Reset</h2>
+
 <form action="/reset" method="post">
-  <input type="password" name="password" placeholder="Passwort eingeben">
-  <button>⚠️ Reset durchführen</button>
+
+    <input
+        type="password"
+        name="password"
+        placeholder="Passwort">
+
+    <button>
+        Reset durchführen
+    </button>
+
 </form>
 
-<style>
-.team-row {
-  margin-bottom: 20px;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(20, 1fr);
-  gap: 4px;
-}
-
-.cell {
-  padding: 8px;
-  text-align: center;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.red {
-  background: #ff6b6b;
-}
-
-.green {
-  background: #51cf66;
-}
-
-.yellow {
-  background: #ffd43b;
-}
-
-.blue {
-  background: #4dabf7;
-}
-</style>
+<hr>
 
 {% for key, team in sticker_data.items() %}
 
 <div class="team-row">
 
-<h3>{{team.team}}</h3>
+    <h2>{{team.team}}</h2>
 
-<div class="grid">
+    <div class="grid">
 
-{% for sticker in team.stickers %}
+        {% for sticker in team.stickers %}
 
-{% set count = collection.get(sticker, 0) %}
+        {% set count = collection.get(sticker, 0) %}
 
-<div class="cell
-{% if count == 0 %}
-red
-{% elif count == 1 %}
-green
-{% else %}
-yellow
-{% endif %}
-">
+        <div class="cell
+            {% if count == 0 %}
+                red
+            {% elif count == 1 %}
+                green
+            {% else %}
+                yellow
+            {% endif %}
+        ">
 
-{{sticker}}<br>
-{{count}}
+            {{sticker}}<br>
+            {{count}}
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
 {% endfor %}
 
-<h3>Tausch</h3>
-<form action="/trade" method="post">
-  Ich gebe ab: <input name="give"><br>
-  Ich bekomme: <input name="receive"><br>
-  <button>Tauschen</button>
-</form>
-
-conn = get_db()
-c = conn.cursor()
-c.execute("SELECT * FROM trades WHERE status='pending'")
-trades = c.fetchall()
-conn.close()
-
-<h2>⏳ Offene Tausch-Deals</h2>
-
-{% for t in trades %}
-  <div style="border:1px solid black; margin:5px; padding:5px;">
-    <b>Ich gebe:</b> {{t[1]}}<br>
-    <b>Ich bekomme:</b> {{t[2]}}<br>
-
-    <a href="/confirm_trade/{{t[0]}}">✅ Bestätigen</a>
-    <a href="/delete_trade/{{t[0]}}">❌ Löschen</a>
-  </div>
-{% endfor %}
+</body>
+</html>

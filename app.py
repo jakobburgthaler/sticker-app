@@ -1,19 +1,19 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
-
 import json
-
-with open("sticker_data.json", "r", encoding="utf-8") as f:
-    STICKER_DATA = json.load(f)
-
-RESET_PASSWORD = "0408"
 
 app = Flask(__name__)
 
-MAX_STICKER = 920  # anpassen!
+RESET_PASSWORD = "0408"
+
+# Stickerdaten laden
+with open("sticker_data.json", "r", encoding="utf-8") as f:
+    STICKER_DATA = json.load(f)
+
 
 def get_db():
     return sqlite3.connect("stickers.db")
+
 
 def init_db():
     conn = get_db()
@@ -38,14 +38,9 @@ def init_db():
     conn.commit()
     conn.close()
 
+
 init_db()
 
-# Dummy Sticker-Daten (später erweiterbar)
-STICKER_INFO = {
-    "1": {"team": "Deutschland", "name": "Spieler 1"},
-    "2": {"team": "Deutschland", "name": "Spieler 2"},
-    "3": {"team": "Frankreich", "name": "Spieler 3"},
-}
 
 @app.route("/")
 def index():
@@ -70,6 +65,7 @@ def index():
         sticker_data=STICKER_DATA
     )
 
+
 @app.route("/add", methods=["POST"])
 def add():
 
@@ -81,7 +77,11 @@ def add():
     conn = get_db()
     c = conn.cursor()
 
-    c.execute("SELECT count FROM stickers WHERE number=?", (sticker,))
+    c.execute(
+        "SELECT count FROM stickers WHERE number=?",
+        (sticker,)
+    )
+
     row = c.fetchone()
 
     if row:
@@ -91,7 +91,7 @@ def add():
         )
     else:
         c.execute(
-            "INSERT INTO stickers VALUES (?,?)",
+            "INSERT INTO stickers VALUES (?, ?)",
             (sticker, 1)
         )
 
@@ -100,36 +100,49 @@ def add():
 
     return redirect("/")
 
+
 @app.route("/delete", methods=["POST"])
 def delete():
+
     num = request.form["num"]
 
     conn = get_db()
     c = conn.cursor()
 
-    c.execute("DELETE FROM stickers WHERE number=?", (num,))
+    c.execute(
+        "DELETE FROM stickers WHERE number=?",
+        (num,)
+    )
+
     conn.commit()
     conn.close()
 
     return redirect("/")
+
 
 @app.route("/reset", methods=["POST"])
 def reset():
+
     password = request.form.get("password")
 
     if password != RESET_PASSWORD:
-        return "❌ Falsches Passwort!"
+        return "❌ Falsches Passwort"
 
     conn = get_db()
     c = conn.cursor()
+
     c.execute("DELETE FROM stickers")
+    c.execute("DELETE FROM trades")
+
     conn.commit()
     conn.close()
 
     return redirect("/")
 
+
 @app.route("/trade", methods=["POST"])
 def trade():
+
     give = request.form["give"]
     receive = request.form["receive"]
 
@@ -149,51 +162,95 @@ def trade():
 
 @app.route("/confirm_trade/<int:trade_id>")
 def confirm_trade(trade_id):
+
     conn = get_db()
     c = conn.cursor()
 
-    c.execute("SELECT give, receive FROM trades WHERE id=?", (trade_id,))
+    c.execute(
+        "SELECT give, receive FROM trades WHERE id=?",
+        (trade_id,)
+    )
+
     trade = c.fetchone()
+
+    if not trade:
+        conn.close()
+        return "❌ Trade nicht gefunden"
 
     give = [x.strip() for x in trade[0].split(",")]
     receive = [x.strip() for x in trade[1].split(",")]
 
-    # Prüfen
+    # Prüfen ob Sticker doppelt vorhanden
     for n in give:
-        c.execute("SELECT count FROM stickers WHERE number=?", (n,))
+
+        c.execute(
+            "SELECT count FROM stickers WHERE number=?",
+            (n,)
+        )
+
         row = c.fetchone()
+
         if not row or row[0] <= 1:
-            return f"❌ {n} nicht doppelt!"
+            conn.close()
+            return f"❌ {n} nicht doppelt vorhanden"
 
-    # Abziehen
+    # Sticker abziehen
     for n in give:
-        c.execute("UPDATE stickers SET count=count-1 WHERE number=?", (n,))
 
-    # Hinzufügen
+        c.execute(
+            "UPDATE stickers SET count=count-1 WHERE number=?",
+            (n,)
+        )
+
+    # Sticker hinzufügen
     for n in receive:
-        c.execute("SELECT count FROM stickers WHERE number=?", (n,))
-        row = c.fetchone()
-        if row:
-            c.execute("UPDATE stickers SET count=count+1 WHERE number=?", (n,))
-        else:
-            c.execute("INSERT INTO stickers VALUES (?,?)", (n, 1))
 
-    # Status ändern
-    c.execute("UPDATE trades SET status='done' WHERE id=?", (trade_id,))
+        c.execute(
+            "SELECT count FROM stickers WHERE number=?",
+            (n,)
+        )
+
+        row = c.fetchone()
+
+        if row:
+            c.execute(
+                "UPDATE stickers SET count=count+1 WHERE number=?",
+                (n,)
+            )
+        else:
+            c.execute(
+                "INSERT INTO stickers VALUES (?, ?)",
+                (n, 1)
+            )
+
+    # Trade abschließen
+    c.execute(
+        "UPDATE trades SET status='done' WHERE id=?",
+        (trade_id,)
+    )
 
     conn.commit()
     conn.close()
 
     return redirect("/")
+
 
 @app.route("/delete_trade/<int:trade_id>")
 def delete_trade(trade_id):
+
     conn = get_db()
     c = conn.cursor()
-    c.execute("DELETE FROM trades WHERE id=?", (trade_id,))
+
+    c.execute(
+        "DELETE FROM trades WHERE id=?",
+        (trade_id,)
+    )
+
     conn.commit()
     conn.close()
+
     return redirect("/")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
