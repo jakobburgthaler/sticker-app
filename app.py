@@ -1,6 +1,11 @@
 from flask import Flask, render_template, request, redirect
 import sqlite3
 
+import json
+
+with open("sticker_data.json", "r", encoding="utf-8") as f:
+    STICKER_DATA = json.load(f)
+
 RESET_PASSWORD = "0408"
 
 app = Flask(__name__)
@@ -44,77 +49,55 @@ STICKER_INFO = {
 
 @app.route("/")
 def index():
-    team_filter = request.args.get("team")
 
     conn = get_db()
     c = conn.cursor()
+
     c.execute("SELECT * FROM stickers")
     rows = c.fetchall()
 
-    # 🔥 HIER hinzufügen
     c.execute("SELECT * FROM trades WHERE status='pending'")
     trades = c.fetchall()
 
     conn.close()
 
-    data = {n: c for n, c in rows}
+    collection = {n: c for n, c in rows}
 
-    table = []
-    teams = set()
-
-    for i in range(1, MAX_STICKER + 1):
-        num = str(i)
-        count = data.get(num, 0)
-
-        if count == 0:
-            color = "red"
-        elif count == 1:
-            color = "green"
-        else:
-            color = "yellow"
-
-        info = STICKER_INFO.get(num, {"team": "Unbekannt", "name": "-"})
-        teams.add(info["team"])
-
-        if team_filter and info["team"] != team_filter:
-            continue
-
-        table.append({
-            "num": num,
-            "count": count,
-            "color": color,
-            "team": info["team"],
-            "name": info["name"]
-        })
-
-    return render_template("index.html", table=table, teams=sorted(teams), selected_team=team_filter, trades=trades)
+    return render_template(
+        "index.html",
+        collection=collection,
+        trades=trades,
+        sticker_data=STICKER_DATA
+    )
 
 @app.route("/add", methods=["POST"])
 def add():
-    nums = request.form["stickers"].split(",")
+
+    team = request.form["team"]
+    number = request.form["number"]
+
+    sticker = f"{team}{number}"
 
     conn = get_db()
     c = conn.cursor()
 
-    for n in nums:
-        n = n.strip()
+    c.execute("SELECT count FROM stickers WHERE number=?", (sticker,))
+    row = c.fetchone()
 
-        if not n.isdigit():
-            continue
-
-        if int(n) < 1 or int(n) > MAX_STICKER:
-            continue
-
-        c.execute("SELECT count FROM stickers WHERE number=?", (n,))
-        row = c.fetchone()
-
-        if row:
-            c.execute("UPDATE stickers SET count=? WHERE number=?", (row[0]+1, n))
-        else:
-            c.execute("INSERT INTO stickers VALUES (?,?)", (n, 1))
+    if row:
+        c.execute(
+            "UPDATE stickers SET count=? WHERE number=?",
+            (row[0] + 1, sticker)
+        )
+    else:
+        c.execute(
+            "INSERT INTO stickers VALUES (?,?)",
+            (sticker, 1)
+        )
 
     conn.commit()
     conn.close()
+
     return redirect("/")
 
 @app.route("/delete", methods=["POST"])

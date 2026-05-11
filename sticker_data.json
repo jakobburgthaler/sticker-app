@@ -1,0 +1,62 @@
+{
+    
+    "GER": 
+        {
+        "team": "Deutschland",
+        "stickers":
+        [
+            "GER1",
+            "GER2",
+            "GER3",
+            "GER4",
+            "GER5",
+            "GER6",
+            "GER7",
+            "GER8",
+            "GER9",
+            "GER10",
+            "GER11",
+            "GER12",
+            "GER13",
+            "GER14",
+            "GER15",
+            "GER16",
+            "GER17",
+            "GER18",
+            "GER19",
+            "GER20"
+        ]
+        },
+    
+  "AUT": 
+        {
+        "team": "Österreich",
+        "stickers":
+        [
+            "AUT1",
+            "AUT2",
+            "AUT3",
+            "AUT4",
+            "AUT5",
+            "AUT6",
+            "AUT7",
+            "AUT8",
+            "AUT9",
+            "AUT10",
+            "AUT11",
+            "AUT12",
+            "AUT13",
+            "AUT14",
+            "AUT15",
+            "AUT16",
+            "AUT17",
+            "AUT18",
+            "AUT19",
+            "AUT20"
+        ]
+        }
+
+    
+    
+    
+}

@@ -1,8 +1,23 @@
 <h1>Sticker Manager</h1>
 
+<h2>Sticker hinzufügen</h2>
+
 <form action="/add" method="post">
-  <input name="stickers" placeholder="z.B. 1,2,3">
-  <button>Hinzufügen</button>
+
+<select name="team">
+{% for key, team in sticker_data.items() %}
+  <option value="{{key}}">{{team.team}}</option>
+{% endfor %}
+</select>
+
+<select name="number">
+{% for i in range(1,21) %}
+  <option value="{{i}}">{{i}}</option>
+{% endfor %}
+</select>
+
+<button>Hinzufügen</button>
+
 </form>
 
 <h3>Reset</h3>
@@ -11,30 +26,66 @@
   <button>⚠️ Reset durchführen</button>
 </form>
 
-<table border="1">
-{% for i in range(0, table|length, 100) %}
-<tr>
-  {% for j in range(100) %}
-    {% if i+j < table|length %}
-      <td style="background-color: {{table[i+j].color}}">
-        {{table[i+j].num}}<br>
-        {{table[i+j].count}}
-      </td>
-    {% endif %}
-  {% endfor %}
-</tr>
-{% endfor %}
-</table>
+<style>
+.team-row {
+  margin-bottom: 20px;
+}
 
-<form method="get">
-  <select name="team">
-    <option value="">Alle Teams</option>
-    {% for t in teams %}
-      <option value="{{t}}" {% if t == selected_team %}selected{% endif %}>{{t}}</option>
-    {% endfor %}
-  </select>
-  <button>Filtern</button>
-</form>
+.grid {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 4px;
+}
+
+.cell {
+  padding: 8px;
+  text-align: center;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.red {
+  background: #ff6b6b;
+}
+
+.green {
+  background: #51cf66;
+}
+
+.yellow {
+  background: #ffd43b;
+}
+
+.blue {
+  background: #4dabf7;
+}
+</style>
+
+{% for key, team in sticker_data.items() %}
+
+<div class="team-row">
+
+<h3>{{team.team}}</h3>
+
+<div class="grid">
+
+{% for sticker in team.stickers %}
+
+{% set count = collection.get(sticker, 0) %}
+
+<div class="cell
+{% if count == 0 %}
+red
+{% elif count == 1 %}
+green
+{% else %}
+yellow
+{% endif %}
+">
+
+{{sticker}}<br>
+{{count}}
+{% endfor %}
 
 <h3>Tausch</h3>
 <form action="/trade" method="post">
