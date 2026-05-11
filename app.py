@@ -58,12 +58,21 @@ def index():
 
     collection = {n: c for n, c in rows}
 
+incoming = set()
+
+for t in trades:
+    receive = [x.strip() for x in t[2].split(",")]
+
+    for r in receive:
+        incoming.add(r)
+
     return render_template(
-        "index.html",
-        collection=collection,
-        trades=trades,
-        sticker_data=STICKER_DATA
-    )
+    "index.html",
+    collection=collection,
+    trades=trades,
+    sticker_data=STICKER_DATA,
+    incoming=incoming
+)
 
 
 @app.route("/add", methods=["POST"])

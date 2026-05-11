@@ -165,14 +165,16 @@
         {% set count = collection.get(sticker, 0) %}
 
         <div class="cell
-            {% if count == 0 %}
-                red
-            {% elif count == 1 %}
-                green
-            {% else %}
-                yellow
-            {% endif %}
-        ">
+    {% if sticker in incoming %}
+        blue
+    {% elif count == 0 %}
+        red
+    {% elif count == 1 %}
+        green
+    {% else %}
+        yellow
+    {% endif %}
+">
 
             {{sticker}}<br>
             {{count}}
