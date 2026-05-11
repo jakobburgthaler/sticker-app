@@ -48,31 +48,36 @@ def index():
     conn = get_db()
     c = conn.cursor()
 
+    # Sticker laden
     c.execute("SELECT * FROM stickers")
     rows = c.fetchall()
 
+    # Offene Trades laden
     c.execute("SELECT * FROM trades WHERE status='pending'")
     trades = c.fetchall()
 
     conn.close()
 
+    # Sammlung aufbauen
     collection = {n: c for n, c in rows}
 
-incoming = set()
+    # Incoming Sticker sammeln
+    incoming = set()
 
-for t in trades:
-    receive = [x.strip() for x in t[2].split(",")]
+    for t in trades:
 
-    for r in receive:
-        incoming.add(r)
+        receive = [x.strip() for x in t[2].split(",")]
+
+        for r in receive:
+            incoming.add(r)
 
     return render_template(
-    "index.html",
-    collection=collection,
-    trades=trades,
-    sticker_data=STICKER_DATA,
-    incoming=incoming
-)
+        "index.html",
+        collection=collection,
+        trades=trades,
+        sticker_data=STICKER_DATA,
+        incoming=incoming
+    )
 
 
 @app.route("/add", methods=["POST"])
