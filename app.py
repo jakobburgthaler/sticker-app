@@ -66,23 +66,26 @@ def index():
 
     outgoing = {}
 
+        incoming = set()
+    outgoing = {}
+
     for t in trades:
 
-    # Incoming
-    receive = [x.strip() for x in t[2].split(",")]
+        # Incoming Sticker
+        receive = [x.strip() for x in t[2].split(",")]
 
-    for r in receive:
-        incoming.add(r)
+        for r in receive:
+            incoming.add(r)
 
-    # Outgoing
-    give = [x.strip() for x in t[1].split(",")]
+        # Outgoing Sticker
+        give = [x.strip() for x in t[1].split(",")]
 
-    for g in give:
+        for g in give:
 
-        if g not in outgoing:
-            outgoing[g] = 0
+            if g not in outgoing:
+                outgoing[g] = 0
 
-        outgoing[g] += 1
+            outgoing[g] += 1
 
     return render_template(
         "index.html",
