@@ -151,7 +151,17 @@
 
 <div class="team-row">
 
-    <h2>{{team.team}}</h2>
+    <h2>
+
+        <img
+            src="{{ url_for('static', filename='flags/' + key + '.png') }}"
+            width="32"
+            style="vertical-align: middle; margin-right: 8px;"
+        >
+
+        {{team.team}}
+
+    </h2>
 
     <div class="grid">
 
