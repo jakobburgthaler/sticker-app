@@ -478,7 +478,6 @@
   "GER": 
         {
         "team": "Deutschland",
-        "flag": "🇩🇪",
         "stickers":
         [
             "GER1",
@@ -700,6 +699,398 @@
         ]
         },
     
+  "BEL": 
+        {
+        "team": "Belgien",
+        "stickers":
+        [
+            "BEL1",
+            "BEL2",
+            "BEL3",
+            "BEL4",
+            "BEL5",
+            "BEL6",
+            "BEL7",
+            "BEL8",
+            "BEL9",
+            "BEL10",
+            "BEL11",
+            "BEL12",
+            "BEL13",
+            "BEL14",
+            "BEL15",
+            "BEL16",
+            "BEL17",
+            "BEL18",
+            "BEL19",
+            "BEL20"
+        ]
+        },
+    
+  "EGY": 
+        {
+        "team": "Ägypten",
+        "stickers":
+        [
+            "EGY1",
+            "EGY2",
+            "EGY3",
+            "EGY4",
+            "EGY5",
+            "EGY6",
+            "EGY7",
+            "EGY8",
+            "EGY9",
+            "EGY10",
+            "EGY11",
+            "EGY12",
+            "EGY13",
+            "EGY14",
+            "EGY15",
+            "EGY16",
+            "EGY17",
+            "EGY18",
+            "EGY19",
+            "EGY20"
+        ]
+        },
+    
+  "IRN": 
+        {
+        "team": "Iran",
+        "stickers":
+        [
+            "IRN1",
+            "IRN2",
+            "IRN3",
+            "IRN4",
+            "IRN5",
+            "IRN6",
+            "IRN7",
+            "IRN8",
+            "IRN9",
+            "IRN10",
+            "IRN11",
+            "IRN12",
+            "IRN13",
+            "IRN14",
+            "IRN15",
+            "IRN16",
+            "IRN17",
+            "IRN18",
+            "IRN19",
+            "IRN20"
+        ]
+        },
+    
+  "NZL": 
+        {
+        "team": "Neuseeland",
+        "stickers":
+        [
+            "NZL1",
+            "NZL2",
+            "NZL3",
+            "NZL4",
+            "NZL5",
+            "NZL6",
+            "NZL7",
+            "NZL8",
+            "NZL9",
+            "NZL10",
+            "NZL11",
+            "NZL12",
+            "NZL13",
+            "NZL14",
+            "NZL15",
+            "NZL16",
+            "NZL17",
+            "NZL18",
+            "NZL19",
+            "NZL20"
+        ]
+        },
+    
+  "ESP": 
+        {
+        "team": "Spanien",
+        "stickers":
+        [
+            "ESP1",
+            "ESP2",
+            "ESP3",
+            "ESP4",
+            "ESP5",
+            "ESP6",
+            "ESP7",
+            "ESP8",
+            "ESP9",
+            "ESP10",
+            "ESP11",
+            "ESP12",
+            "ESP13",
+            "ESP14",
+            "ESP15",
+            "ESP16",
+            "ESP17",
+            "ESP18",
+            "ESP19",
+            "ESP20"
+        ]
+        },
+    
+  "CPV": 
+        {
+        "team": "Cabo Verde",
+        "stickers":
+        [
+            "CPV1",
+            "CPV2",
+            "CPV3",
+            "CPV4",
+            "CPV5",
+            "CPV6",
+            "CPV7",
+            "CPV8",
+            "CPV9",
+            "CPV10",
+            "CPV11",
+            "CPV12",
+            "CPV13",
+            "CPV14",
+            "CPV15",
+            "CPV16",
+            "CPV17",
+            "CPV18",
+            "CPV19",
+            "CPV20"
+        ]
+        },
+    
+  "KSA": 
+        {
+        "team": "Saudi Arabien",
+        "stickers":
+        [
+            "KSA1",
+            "KSA2",
+            "KSA3",
+            "KSA4",
+            "KSA5",
+            "KSA6",
+            "KSA7",
+            "KSA8",
+            "KSA9",
+            "KSA10",
+            "KSA11",
+            "KSA12",
+            "KSA13",
+            "KSA14",
+            "KSA15",
+            "KSA16",
+            "KSA17",
+            "KSA18",
+            "KSA19",
+            "KSA20"
+        ]
+        },
+    
+  "URU": 
+        {
+        "team": "Uruguay",
+        "stickers":
+        [
+            "URU1",
+            "URU2",
+            "URU3",
+            "URU4",
+            "URU5",
+            "URU6",
+            "URU7",
+            "URU8",
+            "URU9",
+            "URU10",
+            "URU11",
+            "URU12",
+            "URU13",
+            "URU14",
+            "URU15",
+            "URU16",
+            "URU17",
+            "URU18",
+            "URU19",
+            "URU20"
+        ]
+        },
+    
+  "FRA": 
+        {
+        "team": "Frankreich",
+        "stickers":
+        [
+            "FRA1",
+            "FRA2",
+            "FRA3",
+            "FRA4",
+            "FRA5",
+            "FRA6",
+            "FRA7",
+            "FRA8",
+            "FRA9",
+            "FRA10",
+            "FRA11",
+            "FRA12",
+            "FRA13",
+            "FRA14",
+            "FRA15",
+            "FRA16",
+            "FRA17",
+            "FRA18",
+            "FRA19",
+            "FRA20"
+        ]
+        },
+    
+  "SEN": 
+        {
+        "team": "Senegal",
+        "stickers":
+        [
+            "SEN1",
+            "SEN2",
+            "SEN3",
+            "SEN4",
+            "SEN5",
+            "SEN6",
+            "SEN7",
+            "SEN8",
+            "SEN9",
+            "SEN10",
+            "SEN11",
+            "SEN12",
+            "SEN13",
+            "SEN14",
+            "SEN15",
+            "SEN16",
+            "SEN17",
+            "SEN18",
+            "SEN19",
+            "SEN20"
+        ]
+        },
+    
+  "IRQ": 
+        {
+        "team": "Irak",
+        "stickers":
+        [
+            "IRQ1",
+            "IRQ2",
+            "IRQ3",
+            "IRQ4",
+            "IRQ5",
+            "IRQ6",
+            "IRQ7",
+            "IRQ8",
+            "IRQ9",
+            "IRQ10",
+            "IRQ11",
+            "IRQ12",
+            "IRQ13",
+            "IRQ14",
+            "IRQ15",
+            "IRQ16",
+            "IRQ17",
+            "IRQ18",
+            "IRQ19",
+            "IRQ20"
+        ]
+        },
+    
+  "NOR": 
+        {
+        "team": "Norwegen",
+        "stickers":
+        [
+            "NOR1",
+            "NOR2",
+            "NOR3",
+            "NOR4",
+            "NOR5",
+            "NOR6",
+            "NOR7",
+            "NOR8",
+            "NOR9",
+            "NOR10",
+            "NOR11",
+            "NOR12",
+            "NOR13",
+            "NOR14",
+            "NOR15",
+            "NOR16",
+            "NOR17",
+            "NOR18",
+            "NOR19",
+            "NOR20"
+        ]
+        },
+    
+  "ARG": 
+        {
+        "team": "Argentinien",
+        "stickers":
+        [
+            "ARG1",
+            "ARG2",
+            "ARG3",
+            "ARG4",
+            "ARG5",
+            "ARG6",
+            "ARG7",
+            "ARG8",
+            "ARG9",
+            "ARG10",
+            "ARG11",
+            "ARG12",
+            "ARG13",
+            "ARG14",
+            "ARG15",
+            "ARG16",
+            "ARG17",
+            "ARG18",
+            "ARG19",
+            "ARG20"
+        ]
+        },
+    
+  "ALG": 
+        {
+        "team": "Algerien",
+        "stickers":
+        [
+            "ALG1",
+            "ALG2",
+            "ALG3",
+            "ALG4",
+            "ALG5",
+            "ALG6",
+            "ALG7",
+            "ALG8",
+            "ALG9",
+            "ALG10",
+            "ALG11",
+            "ALG12",
+            "ALG13",
+            "ALG14",
+            "ALG15",
+            "ALG16",
+            "ALG17",
+            "ALG18",
+            "ALG19",
+            "ALG20"
+        ]
+        },
+    
   "AUT": 
         {
         "team": "Österreich",
@@ -725,6 +1116,258 @@
             "AUT18",
             "AUT19",
             "AUT20"
+        ]
+        },
+    
+  "JOR": 
+        {
+        "team": "Jordanien",
+        "stickers":
+        [
+            "JOR1",
+            "JOR2",
+            "JOR3",
+            "JOR4",
+            "JOR5",
+            "JOR6",
+            "JOR7",
+            "JOR8",
+            "JOR9",
+            "JOR10",
+            "JOR11",
+            "JOR12",
+            "JOR13",
+            "JOR14",
+            "JOR15",
+            "JOR16",
+            "JOR17",
+            "JOR18",
+            "JOR19",
+            "JOR20"
+        ]
+        },
+    
+  "POR": 
+        {
+        "team": "Portugal",
+        "stickers":
+        [
+            "POR1",
+            "POR2",
+            "POR3",
+            "POR4",
+            "POR5",
+            "POR6",
+            "POR7",
+            "POR8",
+            "POR9",
+            "POR10",
+            "POR11",
+            "POR12",
+            "POR13",
+            "POR14",
+            "POR15",
+            "POR16",
+            "POR17",
+            "POR18",
+            "POR19",
+            "POR20"
+        ]
+        },
+    
+  "COD": 
+        {
+        "team": "DR Kongo",
+        "stickers":
+        [
+            "COD1",
+            "COD2",
+            "COD3",
+            "COD4",
+            "COD5",
+            "COD6",
+            "COD7",
+            "COD8",
+            "COD9",
+            "COD10",
+            "COD11",
+            "COD12",
+            "COD13",
+            "COD14",
+            "COD15",
+            "COD16",
+            "COD17",
+            "COD18",
+            "COD19",
+            "COD20"
+        ]
+        },
+    
+  "UZB": 
+        {
+        "team": "Usbekistan",
+        "stickers":
+        [
+            "UZB1",
+            "UZB2",
+            "UZB3",
+            "UZB4",
+            "UZB5",
+            "UZB6",
+            "UZB7",
+            "UZB8",
+            "UZB9",
+            "UZB10",
+            "UZB11",
+            "UZB12",
+            "UZB13",
+            "UZB14",
+            "UZB15",
+            "UZB16",
+            "UZB17",
+            "UZB18",
+            "UZB19",
+            "UZB20"
+        ]
+        },
+    
+  "COL": 
+        {
+        "team": "Kolumbien",
+        "stickers":
+        [
+            "COL1",
+            "COL2",
+            "COL3",
+            "COL4",
+            "COL5",
+            "COL6",
+            "COL7",
+            "COL8",
+            "COL9",
+            "COL10",
+            "COL11",
+            "COL12",
+            "COL13",
+            "COL14",
+            "COL15",
+            "COL16",
+            "COL17",
+            "COL18",
+            "COL19",
+            "COL20"
+        ]
+        },
+    
+  "ENG": 
+        {
+        "team": "England",
+        "stickers":
+        [
+            "ENG1",
+            "ENG2",
+            "ENG3",
+            "ENG4",
+            "ENG5",
+            "ENG6",
+            "ENG7",
+            "ENG8",
+            "ENG9",
+            "ENG10",
+            "ENG11",
+            "ENG12",
+            "ENG13",
+            "ENG14",
+            "ENG15",
+            "ENG16",
+            "ENG17",
+            "ENG18",
+            "ENG19",
+            "ENG20"
+        ]
+        },
+    
+  "CRO": 
+        {
+        "team": "Kroatien",
+        "stickers":
+        [
+            "CRO1",
+            "CRO2",
+            "CRO3",
+            "CRO4",
+            "CRO5",
+            "CRO6",
+            "CRO7",
+            "CRO8",
+            "CRO9",
+            "CRO10",
+            "CRO11",
+            "CRO12",
+            "CRO13",
+            "CRO14",
+            "CRO15",
+            "CRO16",
+            "CRO17",
+            "CRO18",
+            "CRO19",
+            "CRO20"
+        ]
+        },
+    
+  "GHA": 
+        {
+        "team": "Ghana",
+        "stickers":
+        [
+            "GHA1",
+            "GHA2",
+            "GHA3",
+            "GHA4",
+            "GHA5",
+            "GHA6",
+            "GHA7",
+            "GHA8",
+            "GHA9",
+            "GHA10",
+            "GHA11",
+            "GHA12",
+            "GHA13",
+            "GHA14",
+            "GHA15",
+            "GHA16",
+            "GHA17",
+            "GHA18",
+            "GHA19",
+            "GHA20"
+        ]
+        },
+    
+  "PAN": 
+        {
+        "team": "Panama",
+        "stickers":
+        [
+            "PAN1",
+            "PAN2",
+            "PAN3",
+            "PAN4",
+            "PAN5",
+            "PAN6",
+            "PAN7",
+            "PAN8",
+            "PAN9",
+            "PAN10",
+            "PAN11",
+            "PAN12",
+            "PAN13",
+            "PAN14",
+            "PAN15",
+            "PAN16",
+            "PAN17",
+            "PAN18",
+            "PAN19",
+            "PAN20"
         ]
         }
 

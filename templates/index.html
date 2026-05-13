@@ -72,7 +72,7 @@
 
 <form action="/add" method="post">
 
-    <select name="team">
+    <select id="teamSelect" onchange="updateNumbers()">
 
         {% for key, team in sticker_data.items() %}
 
@@ -84,16 +84,7 @@
 
     </select>
 
-    <select name="number">
-
-        {% for i in range(1,21) %}
-
-        <option value="{{i}}">
-            {{i}}
-        </option>
-
-        {% endfor %}
-
+    <select id="numberSelect" name="sticker">
     </select>
 
     <button>Hinzufügen</button>
@@ -198,6 +189,37 @@
 </div>
 
 {% endfor %}
+
+<script>
+
+const stickerData = {{ sticker_data | tojson }};
+
+function updateNumbers() {
+
+    const team = document.getElementById("teamSelect").value;
+
+    const numberSelect = document.getElementById("numberSelect");
+
+    numberSelect.innerHTML = "";
+
+    const stickers = stickerData[team].stickers;
+
+    stickers.forEach(sticker => {
+
+        const option = document.createElement("option");
+
+        option.value = sticker;
+
+        option.text = sticker.replace(team, "");
+
+        numberSelect.appendChild(option);
+
+    });
+}
+
+updateNumbers();
+
+</script>
 
 </body>
 </html>

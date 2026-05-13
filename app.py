@@ -96,10 +96,7 @@ def index():
 @app.route("/add", methods=["POST"])
 def add():
 
-    team = request.form["team"]
-    number = request.form["number"]
-
-    sticker = f"{team}{number}"
+    sticker = request.form["sticker"]
 
     conn = get_db()
     c = conn.cursor()
