@@ -64,19 +64,33 @@ def index():
     # Incoming Sticker sammeln
     incoming = set()
 
+    outgoing = {}
+
     for t in trades:
 
-        receive = [x.strip() for x in t[2].split(",")]
+    # Incoming
+    receive = [x.strip() for x in t[2].split(",")]
 
-        for r in receive:
-            incoming.add(r)
+    for r in receive:
+        incoming.add(r)
+
+    # Outgoing
+    give = [x.strip() for x in t[1].split(",")]
+
+    for g in give:
+
+        if g not in outgoing:
+            outgoing[g] = 0
+
+        outgoing[g] += 1
 
     return render_template(
         "index.html",
         collection=collection,
         trades=trades,
         sticker_data=STICKER_DATA,
-        incoming=incoming
+        incoming=incoming,
+        outgoing=outgoing
     )
 
 
@@ -160,8 +174,24 @@ def trade():
     give = request.form["give"]
     receive = request.form["receive"]
 
+    give_list = [x.strip() for x in give.split(",")]
+
     conn = get_db()
     c = conn.cursor()
+
+    # Bereits beim Speichern prüfen
+    for sticker in give_list:
+
+        c.execute(
+            "SELECT count FROM stickers WHERE number=?",
+            (sticker,)
+        )
+
+        row = c.fetchone()
+
+        if not row or row[0] <= 1:
+            conn.close()
+            return f"❌ {sticker} ist nicht doppelt vorhanden"
 
     c.execute(
         "INSERT INTO trades (give, receive, status) VALUES (?, ?, ?)",

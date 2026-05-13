@@ -33,6 +33,10 @@
             background: #ff6b6b;
         }
 
+	.purple {
+    	    background: #c77dff;
+	}
+
         .green {
             background: #51cf66;
         }
@@ -73,7 +77,7 @@
         {% for key, team in sticker_data.items() %}
 
         <option value="{{key}}">
-            {{team.team}}
+            {{key}}
         </option>
 
         {% endfor %}
@@ -156,7 +160,7 @@
 
 <div class="team-row">
 
-    <h2>{{team.team}}</h2>
+    <h2>{{team.flag}} {{team.team}}</h2>
 
     <div class="grid">
 
@@ -165,8 +169,10 @@
         {% set count = collection.get(sticker, 0) %}
 
         <div class="cell
-    {% if sticker in incoming %}
-        blue
+    {% if sticker in outgoing %}
+    	purple
+    {% elif sticker in incoming %}
+    	blue
     {% elif count == 0 %}
         red
     {% elif count == 1 %}
@@ -177,7 +183,11 @@
 ">
 
             {{sticker}}<br>
-            {{count}}
+            {% if sticker in outgoing %}
+    		{{count - outgoing[sticker]}}+{{outgoing[sticker]}}
+	    {% else %}
+    		{{count}}
+	    {% endif %}
 
         </div>
 
