@@ -52,32 +52,28 @@ def index():
     c.execute("SELECT * FROM stickers")
     rows = c.fetchall()
 
-    # Offene Trades laden
+    # Trades laden
     c.execute("SELECT * FROM trades WHERE status='pending'")
     trades = c.fetchall()
 
     conn.close()
 
-    # Sammlung aufbauen
+    # Sammlung
     collection = {n: c for n, c in rows}
 
-    # Incoming Sticker sammeln
+    # Incoming & Outgoing
     incoming = set()
-
-    outgoing = {}
-
-        incoming = set()
     outgoing = {}
 
     for t in trades:
 
-        # Incoming Sticker
+        # Sticker die reinkommen
         receive = [x.strip() for x in t[2].split(",")]
 
         for r in receive:
             incoming.add(r)
 
-        # Outgoing Sticker
+        # Sticker die rausgehen
         give = [x.strip() for x in t[1].split(",")]
 
         for g in give:
