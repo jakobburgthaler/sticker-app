@@ -1,6 +1,11 @@
+from supabase import create_client
 from flask import Flask, render_template, request, redirect
-import sqlite3
 import json
+
+SUPABASE_URL = "https://rtjunmrzthconkmrrxkg.supabase.co"
+SUPABASE_KEY = "sb_publishable_IBCPN_sCgzUkcwcRRiLL_w_1o5Rrw3m"
+
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
 
@@ -11,70 +16,43 @@ with open("sticker_data.json", "r", encoding="utf-8") as f:
     STICKER_DATA = json.load(f)
 
 
-def get_db():
-    return sqlite3.connect("stickers.db")
-
-
-def init_db():
-    conn = get_db()
-    c = conn.cursor()
-
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS stickers (
-            number TEXT PRIMARY KEY,
-            count INTEGER
-        )
-    """)
-
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS trades (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            give TEXT,
-            receive TEXT,
-            status TEXT
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-
-init_db()
-
-
 @app.route("/")
 def index():
 
-    conn = get_db()
-    c = conn.cursor()
-
     # Sticker laden
-    c.execute("SELECT * FROM stickers")
-    rows = c.fetchall()
+    rows = supabase.table("stickers").select("*").execute().data
 
     # Trades laden
-    c.execute("SELECT * FROM trades WHERE status='pending'")
-    trades = c.fetchall()
-
-    conn.close()
+    trades = supabase.table("trades") \
+        .select("*") \
+        .eq("status", "pending") \
+        .execute().data
 
     # Sammlung
-    collection = {n: c for n, c in rows}
+    collection = {
+        row["number"]: row["count"]
+        for row in rows
+    }
 
-    # Incoming & Outgoing
     incoming = set()
     outgoing = {}
 
     for t in trades:
 
-        # Sticker die reinkommen
-        receive = [x.strip() for x in t[2].split(",")]
+        # Incoming
+        receive = [
+            x.strip()
+            for x in t["receive_stickers"].split(",")
+        ]
 
         for r in receive:
             incoming.add(r)
 
-        # Sticker die rausgehen
-        give = [x.strip() for x in t[1].split(",")]
+        # Outgoing
+        give = [
+            x.strip()
+            for x in t["give_stickers"].split(",")
+        ]
 
         for g in give:
 
@@ -98,29 +76,28 @@ def add():
 
     sticker = request.form["sticker"]
 
-    conn = get_db()
-    c = conn.cursor()
+    existing = supabase.table("stickers") \
+        .select("*") \
+        .eq("number", sticker) \
+        .execute()
 
-    c.execute(
-        "SELECT count FROM stickers WHERE number=?",
-        (sticker,)
-    )
+    if existing.data:
 
-    row = c.fetchone()
+        count = existing.data[0]["count"] + 1
 
-    if row:
-        c.execute(
-            "UPDATE stickers SET count=? WHERE number=?",
-            (row[0] + 1, sticker)
-        )
+        supabase.table("stickers") \
+            .update({"count": count}) \
+            .eq("number", sticker) \
+            .execute()
+
     else:
-        c.execute(
-            "INSERT INTO stickers VALUES (?, ?)",
-            (sticker, 1)
-        )
 
-    conn.commit()
-    conn.close()
+        supabase.table("stickers") \
+            .insert({
+                "number": sticker,
+                "count": 1
+            }) \
+            .execute()
 
     return redirect("/")
 
@@ -130,16 +107,10 @@ def delete():
 
     num = request.form["num"]
 
-    conn = get_db()
-    c = conn.cursor()
-
-    c.execute(
-        "DELETE FROM stickers WHERE number=?",
-        (num,)
-    )
-
-    conn.commit()
-    conn.close()
+    supabase.table("stickers") \
+        .delete() \
+        .eq("number", num) \
+        .execute()
 
     return redirect("/")
 
@@ -152,14 +123,15 @@ def reset():
     if password != RESET_PASSWORD:
         return "❌ Falsches Passwort"
 
-    conn = get_db()
-    c = conn.cursor()
+    supabase.table("stickers") \
+        .delete() \
+        .neq("number", "XXX") \
+        .execute()
 
-    c.execute("DELETE FROM stickers")
-    c.execute("DELETE FROM trades")
-
-    conn.commit()
-    conn.close()
+    supabase.table("trades") \
+        .delete() \
+        .neq("id", 0) \
+        .execute()
 
     return redirect("/")
 
@@ -172,30 +144,28 @@ def trade():
 
     give_list = [x.strip() for x in give.split(",")]
 
-    conn = get_db()
-    c = conn.cursor()
-
-    # Bereits beim Speichern prüfen
+    # Prüfen ob Sticker doppelt
     for sticker in give_list:
 
-        c.execute(
-            "SELECT count FROM stickers WHERE number=?",
-            (sticker,)
-        )
+        result = supabase.table("stickers") \
+            .select("*") \
+            .eq("number", sticker) \
+            .execute()
 
-        row = c.fetchone()
+        if not result.data:
+            return f"❌ {sticker} nicht vorhanden"
 
-        if not row or row[0] <= 1:
-            conn.close()
-            return f"❌ {sticker} ist nicht doppelt vorhanden"
+        if result.data[0]["count"] <= 1:
+            return f"❌ {sticker} nicht doppelt vorhanden"
 
-    c.execute(
-        "INSERT INTO trades (give, receive, status) VALUES (?, ?, ?)",
-        (give, receive, "pending")
-    )
-
-    conn.commit()
-    conn.close()
+    # Trade speichern
+    supabase.table("trades") \
+        .insert({
+            "give_stickers": give,
+            "receive_stickers": receive,
+            "status": "pending"
+        }) \
+        .execute()
 
     return redirect("/")
 
@@ -203,74 +173,75 @@ def trade():
 @app.route("/confirm_trade/<int:trade_id>")
 def confirm_trade(trade_id):
 
-    conn = get_db()
-    c = conn.cursor()
+    result = supabase.table("trades") \
+        .select("*") \
+        .eq("id", trade_id) \
+        .execute()
 
-    c.execute(
-        "SELECT give, receive FROM trades WHERE id=?",
-        (trade_id,)
-    )
-
-    trade = c.fetchone()
-
-    if not trade:
-        conn.close()
+    if not result.data:
         return "❌ Trade nicht gefunden"
 
-    give = [x.strip() for x in trade[0].split(",")]
-    receive = [x.strip() for x in trade[1].split(",")]
+    trade = result.data[0]
 
-    # Prüfen ob Sticker doppelt vorhanden
-    for n in give:
+    give = [
+        x.strip()
+        for x in trade["give_stickers"].split(",")
+    ]
 
-        c.execute(
-            "SELECT count FROM stickers WHERE number=?",
-            (n,)
-        )
-
-        row = c.fetchone()
-
-        if not row or row[0] <= 1:
-            conn.close()
-            return f"❌ {n} nicht doppelt vorhanden"
+    receive = [
+        x.strip()
+        for x in trade["receive_stickers"].split(",")
+    ]
 
     # Sticker abziehen
-    for n in give:
+    for sticker in give:
 
-        c.execute(
-            "UPDATE stickers SET count=count-1 WHERE number=?",
-            (n,)
-        )
+        result = supabase.table("stickers") \
+            .select("*") \
+            .eq("number", sticker) \
+            .execute()
+
+        if not result.data:
+            continue
+
+        count = result.data[0]["count"] - 1
+
+        supabase.table("stickers") \
+            .update({"count": count}) \
+            .eq("number", sticker) \
+            .execute()
 
     # Sticker hinzufügen
-    for n in receive:
+    for sticker in receive:
 
-        c.execute(
-            "SELECT count FROM stickers WHERE number=?",
-            (n,)
-        )
+        result = supabase.table("stickers") \
+            .select("*") \
+            .eq("number", sticker) \
+            .execute()
 
-        row = c.fetchone()
+        if result.data:
 
-        if row:
-            c.execute(
-                "UPDATE stickers SET count=count+1 WHERE number=?",
-                (n,)
-            )
+            count = result.data[0]["count"] + 1
+
+            supabase.table("stickers") \
+                .update({"count": count}) \
+                .eq("number", sticker) \
+                .execute()
+
         else:
-            c.execute(
-                "INSERT INTO stickers VALUES (?, ?)",
-                (n, 1)
-            )
+
+            supabase.table("stickers") \
+                .insert({
+                    "number": sticker,
+                    "count": 1
+                }) \
+                .execute()
 
     # Trade abschließen
-    c.execute(
-        "UPDATE trades SET status='done' WHERE id=?",
-        (trade_id,)
-    )
-
-    conn.commit()
-    conn.close()
+    supabase.table("trades") \
+        .update({"status": "done"}) \
+        .eq("id", trade_id) \
+        .execute()
 
     return redirect("/")
 
@@ -278,16 +249,10 @@ def confirm_trade(trade_id):
 @app.route("/delete_trade/<int:trade_id>")
 def delete_trade(trade_id):
 
-    conn = get_db()
-    c = conn.cursor()
-
-    c.execute(
-        "DELETE FROM trades WHERE id=?",
-        (trade_id,)
-    )
-
-    conn.commit()
-    conn.close()
+    supabase.table("trades") \
+        .delete() \
+        .eq("id", trade_id) \
+        .execute()
 
     return redirect("/")
 
