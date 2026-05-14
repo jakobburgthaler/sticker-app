@@ -112,6 +112,47 @@ def add():
 
     return redirect("/")
 
+@app.route("/remove", methods=["POST"])
+def remove():
+
+    sticker = request.form["sticker"]
+
+    result = supabase.table("stickers") \
+        .select("*") \
+        .eq("number", sticker) \
+        .execute()
+
+    if not result.data:
+
+        session["message"] = f"❌ {sticker} nicht vorhanden"
+
+        return redirect("/")
+
+    count = result.data[0]["count"]
+
+    # Wenn nur 1x vorhanden → komplett löschen
+    if count <= 1:
+
+        supabase.table("stickers") \
+            .delete() \
+            .eq("number", sticker) \
+            .execute()
+
+        session["message"] = f"🗑️ {sticker} entfernt"
+
+    else:
+
+        new_count = count - 1
+
+        supabase.table("stickers") \
+            .update({"count": new_count}) \
+            .eq("number", sticker) \
+            .execute()
+
+        session["message"] = f"➖ {sticker} reduziert auf {new_count}"
+
+    return redirect("/")
+
 
 @app.route("/delete", methods=["POST"])
 def delete():
