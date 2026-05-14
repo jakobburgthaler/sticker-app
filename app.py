@@ -35,6 +35,36 @@ def index():
         for row in rows
     }
 
+
+    # Statistik
+    all_stickers = []
+
+    for key, team in STICKER_DATA.items():
+        all_stickers.extend(team["stickers"])
+
+    TOTAL_STICKERS = len(all_stickers)
+
+    owned = 0
+    missing = 0
+    duplicates = 0
+    total_owned = 0
+
+    for sticker in all_stickers:
+
+        count = collection.get(sticker, 0)
+
+        total_owned += count
+
+        if count > 0:
+            owned += 1
+        else:
+            missing += 1
+
+        if count > 1:
+            duplicates += count - 1
+
+    completion = round((owned / TOTAL_STICKERS) * 100)
+
     # Incoming / Outgoing
     incoming = set()
     outgoing = {}
@@ -70,7 +100,13 @@ def index():
         sticker_data=STICKER_DATA,
         incoming=incoming,
         outgoing=outgoing,
-        message=session.pop("message", None)
+        message=session.pop("message", None),
+        total_stickers=TOTAL_STICKERS,
+        owned=owned,
+        missing=missing,
+        duplicates=duplicates,
+	total_owned=total_owned,
+	completion=completion
     )
 
 

@@ -110,6 +110,61 @@
 
 </form>
 
+<div style="
+    display:flex;
+    gap:30px;
+    align-items:center;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+">
+
+    <!-- Fortschritts-Kreis -->
+    <div style="
+        width:140px;
+        height:140px;
+        border-radius:50%;
+        background:
+        conic-gradient(
+            #51cf66 {{completion}}%,
+            #dee2e6 0%
+        );
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:28px;
+        font-weight:bold;
+        color:black;
+    ">
+
+        <div style="
+            width:100px;
+            height:100px;
+            border-radius:50%;
+            background:white;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        ">
+            {{completion}}%
+        </div>
+
+    </div>
+
+    <!-- Statistik -->
+    <div style="font-size:18px; line-height:1.8;">
+
+        <div>✅ Einmal vorhanden: <b>{{owned}}</b> / {{total_stickers}}</div>
+
+        <div>❌ Fehlend: <b>{{missing}}</b></div>
+
+        <div>🟡 Doppelte Sticker: <b>{{duplicates}}</b></div>
+
+        <div>📦 Sticker insgesamt: <b>{{total_owned}}</b></div>
+
+    </div>
+
+</div>
+
 <hr>
 
 <h2>🔄 Neuer Tausch</h2>
