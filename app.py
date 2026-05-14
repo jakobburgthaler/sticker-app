@@ -3,7 +3,7 @@ from flask import Flask, render_template, request, redirect, session
 import json
 
 SUPABASE_URL = "https://rtjunmrzthconkmrrxkg.supabase.co"
-SUPABASE_KEY = "DEIN_SUPABASE_KEY"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0anVubXJ6dGhjb25rbXJyeGtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTgyMTEsImV4cCI6MjA5NDI3NDIxMX0.peGcjsdTm2cf2EKkK0OAoAoJouaxFvv4xMmPrSVithA"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
