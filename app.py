@@ -1,13 +1,14 @@
 from supabase import create_client
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session
 import json
 
 SUPABASE_URL = "https://rtjunmrzthconkmrrxkg.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0anVubXJ6dGhjb25rbXJyeGtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTgyMTEsImV4cCI6MjA5NDI3NDIxMX0.peGcjsdTm2cf2EKkK0OAoAoJouaxFvv4xMmPrSVithA"
+SUPABASE_KEY = "DEIN_SUPABASE_KEY"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
+app.secret_key = "panini_secret"
 
 RESET_PASSWORD = "0408"
 
@@ -34,12 +35,13 @@ def index():
         for row in rows
     }
 
+    # Incoming / Outgoing
     incoming = set()
     outgoing = {}
 
     for t in trades:
 
-        # Incoming
+        # Sticker die reinkommen
         receive = [
             x.strip()
             for x in t["receive_stickers"].split(",")
@@ -48,7 +50,7 @@ def index():
         for r in receive:
             incoming.add(r)
 
-        # Outgoing
+        # Sticker die rausgehen
         give = [
             x.strip()
             for x in t["give_stickers"].split(",")
@@ -67,7 +69,8 @@ def index():
         trades=trades,
         sticker_data=STICKER_DATA,
         incoming=incoming,
-        outgoing=outgoing
+        outgoing=outgoing,
+        message=session.pop("message", None)
     )
 
 
@@ -83,7 +86,13 @@ def add():
 
     if existing.data:
 
-        count = existing.data[0]["count"] + 1
+        old_count = existing.data[0]["count"]
+        count = old_count + 1
+
+        if old_count == 1:
+            session["message"] = f"🟡 {sticker} ist jetzt doppelt"
+        else:
+            session["message"] = f"🔴 {sticker} jetzt {count}x vorhanden"
 
         supabase.table("stickers") \
             .update({"count": count}) \
@@ -91,6 +100,8 @@ def add():
             .execute()
 
     else:
+
+        session["message"] = f"✅ {sticker} neu erhalten"
 
         supabase.table("stickers") \
             .insert({
@@ -133,6 +144,8 @@ def reset():
         .neq("id", 0) \
         .execute()
 
+    session["message"] = "⚠️ Sammlung wurde zurückgesetzt"
+
     return redirect("/")
 
 
@@ -144,7 +157,7 @@ def trade():
 
     give_list = [x.strip() for x in give.split(",")]
 
-    # Prüfen ob Sticker doppelt
+    # Prüfen ob Sticker doppelt vorhanden
     for sticker in give_list:
 
         result = supabase.table("stickers") \
@@ -166,6 +179,8 @@ def trade():
             "status": "pending"
         }) \
         .execute()
+
+    session["message"] = "🔄 Tausch gespeichert"
 
     return redirect("/")
 
@@ -243,6 +258,8 @@ def confirm_trade(trade_id):
         .eq("id", trade_id) \
         .execute()
 
+    session["message"] = "✅ Tausch bestätigt"
+
     return redirect("/")
 
 
@@ -253,6 +270,8 @@ def delete_trade(trade_id):
         .delete() \
         .eq("id", trade_id) \
         .execute()
+
+    session["message"] = "❌ Tausch gelöscht"
 
     return redirect("/")
 
