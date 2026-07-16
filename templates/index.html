@@ -1,22 +1,6 @@
 <!DOCTYPE html>
 <html>
 
-{% if message %}
-
-<div style="
-    background:#f1f3f5;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:20px;
-    font-size:18px;
-">
-
-    {{message}}
-
-</div>
-
-{% endif %}
-
 <head>
     <title>Panini Sticker Manager</title>
 
@@ -81,6 +65,26 @@
 </head>
 
 <body>
+
+{% if message %}
+
+<div style="
+    background:#f1f3f5;
+    padding:12px;
+    border-radius:8px;
+    margin-bottom:20px;
+    font-size:18px;
+">
+
+    {{message}}
+
+</div>
+
+{% endif %}
+
+
+
+
 
 <h1>🏆 Panini Sticker Manager</h1>
 
@@ -182,6 +186,10 @@
 <hr>
 
 <h2>⏳ Offene Tausch-Deals</h2>
+
+<p>Anzahl Trades: {{ trades|length }}</p>
+
+<pre>{{ trades }}</pre>
 
 {% for t in trades %}
 

@@ -8,7 +8,7 @@ SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
-app.secret_key = "panini_secret"
+app.secret_key = "panini-manager-2026"
 
 RESET_PASSWORD = "0408"
 
@@ -28,6 +28,10 @@ def index():
         .select("*") \
         .eq("status", "pending") \
         .execute().data
+
+    print("################################")
+    print(trades)
+    print("################################")
 
     # Sammlung
     collection = {
