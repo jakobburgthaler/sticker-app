@@ -187,21 +187,22 @@
 
 <div class="trade-box">
 
-    <b>Ich gebe:</b> {{t[1]}}<br>
-    <b>Ich bekomme:</b> {{t[2]}}<br><br>
+    <b>Ich gebe:</b> {{ t.give_stickers }}<br>
+    <b>Ich bekomme:</b> {{ t.receive_stickers }}<br><br>
 
-    <a href="/confirm_trade/{{t[0]}}">
+    <a href="/confirm_trade/{{ t.id }}">
         ✅ Bestätigen
     </a>
 
-    <a href="/delete_trade/{{t[0]}}">
+    &nbsp;&nbsp;
+
+    <a href="/delete_trade/{{ t.id }}">
         ❌ Löschen
     </a>
 
 </div>
 
 {% endfor %}
-
 <hr>
 
 <h2>⚠️ Reset</h2>
