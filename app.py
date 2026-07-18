@@ -1,52 +1,162 @@
-from supabase import create_client
-from flask import Flask, render_template, request, redirect, session
 import json
+import os
 
-SUPABASE_URL = "https://rtjunmrzthconkmrrxkg.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0anVubXJ6dGhjb25rbXJyeGtnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2OTgyMTEsImV4cCI6MjA5NDI3NDIxMX0.peGcjsdTm2cf2EKkK0OAoAoJouaxFvv4xMmPrSVithA"
+from flask import Flask, render_template, request, redirect, session
+from supabase import create_client
+
+# ============================================================
+# KONFIGURATION
+# ============================================================
+
+SUPABASE_URL = os.environ.get(
+    "SUPABASE_URL",
+    "https://rtjunmrzthconkmrrxkg.supabase.co"
+)
+
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+if not SUPABASE_KEY:
+    raise RuntimeError(
+        "SUPABASE_KEY fehlt. Bitte in Render unter Environment "
+        "als Environment Variable hinterlegen."
+    )
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = Flask(__name__)
-app.secret_key = "panini-manager-2026"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "change-this-secret-key")
 
-RESET_PASSWORD = "0408"
+RESET_PASSWORD = os.environ.get("RESET_PASSWORD", "0408")
 
-# Stickerdaten laden
+
+# ============================================================
+# STICKERDATEN LADEN
+# ============================================================
+
 with open("sticker_data.json", "r", encoding="utf-8") as f:
     STICKER_DATA = json.load(f)
 
 
+def all_sticker_ids():
+    """Gibt alle gültigen Sticker-IDs aus sticker_data.json zurück."""
+    result = []
+
+    for team in STICKER_DATA.values():
+        result.extend(team.get("stickers", []))
+
+    return set(result)
+
+
+VALID_STICKERS = all_sticker_ids()
+
+
+def split_stickers(value):
+    """Kommagetrennte Stickerliste sauber in eine Liste umwandeln."""
+    return [
+        item.strip().upper()
+        for item in (value or "").split(",")
+        if item.strip()
+    ]
+
+
+def get_sticker_count(sticker):
+    """Aktuellen Bestand eines Stickers aus Supabase lesen."""
+    result = (
+        supabase.table("stickers")
+        .select("count")
+        .eq("number", sticker)
+        .execute()
+    )
+
+    if not result.data:
+        return 0
+
+    return result.data[0]["count"] or 0
+
+
+def add_one_sticker(sticker):
+    """Einen Sticker hinzufügen."""
+    current = get_sticker_count(sticker)
+
+    if current == 0:
+        (
+            supabase.table("stickers")
+            .insert({"number": sticker, "count": 1})
+            .execute()
+        )
+    else:
+        (
+            supabase.table("stickers")
+            .update({"count": current + 1})
+            .eq("number", sticker)
+            .execute()
+        )
+
+    return current
+
+
+def remove_one_sticker(sticker):
+    """Einen Sticker aus der Sammlung entfernen."""
+    current = get_sticker_count(sticker)
+
+    if current <= 0:
+        return False
+
+    if current == 1:
+        (
+            supabase.table("stickers")
+            .delete()
+            .eq("number", sticker)
+            .execute()
+        )
+    else:
+        (
+            supabase.table("stickers")
+            .update({"count": current - 1})
+            .eq("number", sticker)
+            .execute()
+        )
+
+    return True
+
+
+# ============================================================
+# STARTSEITE
+# ============================================================
+
 @app.route("/")
 def index():
 
-    # Sticker laden
-    rows = supabase.table("stickers").select("*").execute().data
+    # Sammlung laden
+    sticker_rows = (
+        supabase.table("stickers")
+        .select("*")
+        .execute()
+        .data
+    )
 
-    # Trades laden
-    trades = supabase.table("trades") \
-        .select("*") \
-        .eq("status", "pending") \
-        .execute().data
-
-    print("################################")
-    print(trades)
-    print("################################")
-
-    # Sammlung
     collection = {
         row["number"]: row["count"]
-        for row in rows
+        for row in sticker_rows
     }
 
+    # Offene Trades laden
+    trades = (
+        supabase.table("trades")
+        .select("*")
+        .eq("status", "pending")
+        .order("id")
+        .execute()
+        .data
+    )
 
-    # Statistik
+    # Alle gültigen Sticker
     all_stickers = []
 
-    for key, team in STICKER_DATA.items():
-        all_stickers.extend(team["stickers"])
+    for team in STICKER_DATA.values():
+        all_stickers.extend(team.get("stickers", []))
 
-    TOTAL_STICKERS = len(all_stickers)
+    total_stickers = len(all_stickers)
 
     owned = 0
     missing = 0
@@ -54,7 +164,6 @@ def index():
     total_owned = 0
 
     for sticker in all_stickers:
-
         count = collection.get(sticker, 0)
 
         total_owned += count
@@ -67,35 +176,27 @@ def index():
         if count > 1:
             duplicates += count - 1
 
-    completion = round((owned / TOTAL_STICKERS) * 100)
+    completion = round((owned / total_stickers) * 100) if total_stickers else 0
 
-    # Incoming / Outgoing
+    # Sticker, die durch offene Trades hereinkommen
     incoming = set()
+
+    # Sticker, die durch offene Trades abgegeben werden
     outgoing = {}
 
-    for t in trades:
+    for trade in trades:
 
-        # Sticker die reinkommen
-        receive = [
-            x.strip()
-            for x in t["receive_stickers"].split(",")
-        ]
+        receive = split_stickers(trade.get("receive_stickers"))
 
-        for r in receive:
-            incoming.add(r)
+        for sticker in receive:
+            incoming.add(sticker)
 
-        # Sticker die rausgehen
-        give = [
-            x.strip()
-            for x in t["give_stickers"].split(",")
-        ]
+        give = split_stickers(trade.get("give_stickers"))
 
-        for g in give:
+        for sticker in give:
+            outgoing[sticker] = outgoing.get(sticker, 0) + 1
 
-            if g not in outgoing:
-                outgoing[g] = 0
-
-            outgoing[g] += 1
+    message = session.pop("message", None)
 
     return render_template(
         "index.html",
@@ -104,258 +205,224 @@ def index():
         sticker_data=STICKER_DATA,
         incoming=incoming,
         outgoing=outgoing,
-        message=session.pop("message", None),
-        total_stickers=TOTAL_STICKERS,
+        message=message,
+        total_stickers=total_stickers,
         owned=owned,
         missing=missing,
         duplicates=duplicates,
-	total_owned=total_owned,
-	completion=completion
+        total_owned=total_owned,
+        completion=completion
     )
 
+
+# ============================================================
+# STICKER HINZUFÜGEN
+# ============================================================
 
 @app.route("/add", methods=["POST"])
 def add():
 
-    sticker = request.form["sticker"]
+    team = request.form.get("team", "").strip().upper()
+    number = request.form.get("number", "").strip()
 
-    existing = supabase.table("stickers") \
-        .select("*") \
-        .eq("number", sticker) \
-        .execute()
+    sticker = f"{team}{number}"
 
-    if existing.data:
-
-        old_count = existing.data[0]["count"]
-        count = old_count + 1
-
-        if old_count == 1:
-            session["message"] = f"🟡 {sticker} ist jetzt doppelt"
-        else:
-            session["message"] = f"🔴 {sticker} jetzt {count}x vorhanden"
-
-        supabase.table("stickers") \
-            .update({"count": count}) \
-            .eq("number", sticker) \
-            .execute()
-
-    else:
-
-        session["message"] = f"✅ {sticker} neu erhalten"
-
-        supabase.table("stickers") \
-            .insert({
-                "number": sticker,
-                "count": 1
-            }) \
-            .execute()
-
-    return redirect("/")
-
-@app.route("/remove", methods=["POST"])
-def remove():
-
-    sticker = request.form["sticker"]
-
-    result = supabase.table("stickers") \
-        .select("*") \
-        .eq("number", sticker) \
-        .execute()
-
-    if not result.data:
-
-        session["message"] = f"❌ {sticker} nicht vorhanden"
-
+    if sticker not in VALID_STICKERS:
+        session["message"] = f"❌ {sticker} ist kein gültiger Sticker."
         return redirect("/")
 
-    count = result.data[0]["count"]
+    old_count = add_one_sticker(sticker)
 
-    # Wenn nur 1x vorhanden → komplett löschen
-    if count <= 1:
-
-        supabase.table("stickers") \
-            .delete() \
-            .eq("number", sticker) \
-            .execute()
-
-        session["message"] = f"🗑️ {sticker} entfernt"
-
+    if old_count == 0:
+        session["message"] = f"🆕 {sticker} wurde neu hinzugefügt."
     else:
-
-        new_count = count - 1
-
-        supabase.table("stickers") \
-            .update({"count": new_count}) \
-            .eq("number", sticker) \
-            .execute()
-
-        session["message"] = f"➖ {sticker} reduziert auf {new_count}"
+        session["message"] = (
+            f"➕ {sticker} war bereits vorhanden "
+            f"und ist jetzt {old_count + 1}× vorhanden."
+        )
 
     return redirect("/")
 
 
-@app.route("/delete", methods=["POST"])
-def delete():
+# ============================================================
+# EINEN STICKER ENTFERNEN
+# ============================================================
 
-    num = request.form["num"]
+@app.route("/delete_sticker", methods=["POST"])
+def delete_sticker():
 
-    supabase.table("stickers") \
-        .delete() \
-        .eq("number", num) \
-        .execute()
+    sticker = request.form.get("sticker", "").strip().upper()
 
-    return redirect("/")
-
-
-@app.route("/reset", methods=["POST"])
-def reset():
-
-    password = request.form.get("password")
-
-    if password != RESET_PASSWORD:
-        return "❌ Falsches Passwort"
-
-    supabase.table("stickers") \
-        .delete() \
-        .neq("number", "XXX") \
-        .execute()
-
-    supabase.table("trades") \
-        .delete() \
-        .neq("id", 0) \
-        .execute()
-
-    session["message"] = "⚠️ Sammlung wurde zurückgesetzt"
+    if remove_one_sticker(sticker):
+        session["message"] = f"🗑️ {sticker} wurde einmal entfernt."
+    else:
+        session["message"] = f"❌ {sticker} ist nicht in deiner Sammlung."
 
     return redirect("/")
 
+
+# ============================================================
+# TRADE ANLEGEN
+# ============================================================
 
 @app.route("/trade", methods=["POST"])
 def trade():
 
-    give = request.form["give"]
-    receive = request.form["receive"]
+    give = request.form.get("give", "")
+    receive = request.form.get("receive", "")
 
-    give_list = [x.strip() for x in give.split(",")]
+    give_list = split_stickers(give)
+    receive_list = split_stickers(receive)
 
-    # Prüfen ob Sticker doppelt vorhanden
+    if not give_list or not receive_list:
+        session["message"] = "❌ Bitte beide Seiten des Tauschs ausfüllen."
+        return redirect("/")
+
+    # Nur gültige Sticker zulassen
+    invalid = [
+        sticker
+        for sticker in give_list + receive_list
+        if sticker not in VALID_STICKERS
+    ]
+
+    if invalid:
+        session["message"] = (
+            "❌ Ungültige Sticker: " + ", ".join(sorted(set(invalid)))
+        )
+        return redirect("/")
+
+    # Abzugebende Sticker müssen doppelt vorhanden sein
     for sticker in give_list:
+        if get_sticker_count(sticker) <= 1:
+            session["message"] = (
+                f"❌ {sticker} ist nicht doppelt vorhanden "
+                "und kann daher nicht abgegeben werden."
+            )
+            return redirect("/")
 
-        result = supabase.table("stickers") \
-            .select("*") \
-            .eq("number", sticker) \
-            .execute()
-
-        if not result.data:
-            return f"❌ {sticker} nicht vorhanden"
-
-        if result.data[0]["count"] <= 1:
-            return f"❌ {sticker} nicht doppelt vorhanden"
-
-    # Trade speichern
-    supabase.table("trades") \
+    (
+        supabase.table("trades")
         .insert({
-            "give_stickers": give,
-            "receive_stickers": receive,
+            "give_stickers": ", ".join(give_list),
+            "receive_stickers": ", ".join(receive_list),
             "status": "pending"
-        }) \
+        })
         .execute()
+    )
 
-    session["message"] = "🔄 Tausch gespeichert"
-
+    session["message"] = "🔄 Tausch gespeichert."
     return redirect("/")
 
+
+# ============================================================
+# TRADE BESTÄTIGEN
+# ============================================================
 
 @app.route("/confirm_trade/<int:trade_id>")
 def confirm_trade(trade_id):
 
-    result = supabase.table("trades") \
-        .select("*") \
-        .eq("id", trade_id) \
+    result = (
+        supabase.table("trades")
+        .select("*")
+        .eq("id", trade_id)
         .execute()
+    )
 
     if not result.data:
-        return "❌ Trade nicht gefunden"
+        session["message"] = "❌ Trade nicht gefunden."
+        return redirect("/")
 
     trade = result.data[0]
 
-    give = [
-        x.strip()
-        for x in trade["give_stickers"].split(",")
-    ]
+    if trade.get("status") != "pending":
+        session["message"] = "❌ Dieser Trade ist nicht mehr offen."
+        return redirect("/")
 
-    receive = [
-        x.strip()
-        for x in trade["receive_stickers"].split(",")
-    ]
+    give = split_stickers(trade.get("give_stickers"))
+    receive = split_stickers(trade.get("receive_stickers"))
 
-    # Sticker abziehen
+    # Vorher prüfen, damit der Trade nicht halb durchgeführt wird
     for sticker in give:
+        if get_sticker_count(sticker) <= 1:
+            session["message"] = (
+                f"❌ {sticker} ist nicht mehr doppelt vorhanden. "
+                "Der Trade wurde nicht durchgeführt."
+            )
+            return redirect("/")
 
-        result = supabase.table("stickers") \
-            .select("*") \
-            .eq("number", sticker) \
-            .execute()
+    # Abgeben
+    for sticker in give:
+        remove_one_sticker(sticker)
 
-        if not result.data:
-            continue
-
-        count = result.data[0]["count"] - 1
-
-        supabase.table("stickers") \
-            .update({"count": count}) \
-            .eq("number", sticker) \
-            .execute()
-
-    # Sticker hinzufügen
+    # Bekommen
     for sticker in receive:
-
-        result = supabase.table("stickers") \
-            .select("*") \
-            .eq("number", sticker) \
-            .execute()
-
-        if result.data:
-
-            count = result.data[0]["count"] + 1
-
-            supabase.table("stickers") \
-                .update({"count": count}) \
-                .eq("number", sticker) \
-                .execute()
-
-        else:
-
-            supabase.table("stickers") \
-                .insert({
-                    "number": sticker,
-                    "count": 1
-                }) \
-                .execute()
+        add_one_sticker(sticker)
 
     # Trade abschließen
-    supabase.table("trades") \
-        .update({"status": "done"}) \
-        .eq("id", trade_id) \
+    (
+        supabase.table("trades")
+        .update({"status": "done"})
+        .eq("id", trade_id)
         .execute()
+    )
 
-    session["message"] = "✅ Tausch bestätigt"
-
+    session["message"] = "✅ Tausch bestätigt."
     return redirect("/")
 
+
+# ============================================================
+# TRADE LÖSCHEN
+# ============================================================
 
 @app.route("/delete_trade/<int:trade_id>")
 def delete_trade(trade_id):
 
-    supabase.table("trades") \
-        .delete() \
-        .eq("id", trade_id) \
+    (
+        supabase.table("trades")
+        .delete()
+        .eq("id", trade_id)
         .execute()
+    )
 
-    session["message"] = "❌ Tausch gelöscht"
-
+    session["message"] = "🗑️ Tausch gelöscht."
     return redirect("/")
 
 
+# ============================================================
+# RESET
+# ============================================================
+
+@app.route("/reset", methods=["POST"])
+def reset():
+
+    password = request.form.get("password", "")
+
+    if password != RESET_PASSWORD:
+        session["message"] = "❌ Falsches Passwort."
+        return redirect("/")
+
+    (
+        supabase.table("stickers")
+        .delete()
+        .neq("number", "")
+        .execute()
+    )
+
+    (
+        supabase.table("trades")
+        .delete()
+        .neq("id", 0)
+        .execute()
+    )
+
+    session["message"] = "⚠️ Sammlung und Trades wurden zurückgesetzt."
+    return redirect("/")
+
+
+# ============================================================
+# START
+# ============================================================
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

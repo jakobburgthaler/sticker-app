@@ -1,41 +1,163 @@
 <!DOCTYPE html>
-<html>
+<html lang="de">
 
 <head>
-    <title>Panini Sticker Manager</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Panini Sticker Manager 2.0</title>
 
     <style>
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
+            margin: 0;
             padding: 20px;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        .message {
+            padding: 14px;
+            margin: 15px 0;
+            border-radius: 10px;
+            background: white;
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .stat {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .progress-wrapper {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 24px;
+            background: #ddd;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: {{ completion }}%;
+            background: #51cf66;
+            transition: width 0.3s;
+        }
+
+        .box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        input, select, button {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 7px;
+            border: 1px solid #bbb;
+            font-size: 14px;
+        }
+
+        button {
+            cursor: pointer;
+            background: #222;
+            color: white;
+        }
+
+        .trade-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 12px 0;
+            border-radius: 10px;
+            background: #fafafa;
+        }
+
+        .trade-box a {
+            display: inline-block;
+            margin-top: 12px;
+            margin-right: 12px;
+            text-decoration: none;
+            font-weight: bold;
         }
 
         .team-row {
-            margin-bottom: 30px;
+            margin: 30px 0;
+        }
+
+        .team-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .team-title img {
+            width: 34px;
+            height: 23px;
+            object-fit: cover;
+            border-radius: 3px;
+            border: 1px solid #aaa;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(20, 1fr);
+            grid-template-columns: repeat(20, minmax(40px, 1fr));
             gap: 4px;
         }
 
         .cell {
-            padding: 8px;
+            padding: 8px 4px;
             text-align: center;
             border-radius: 6px;
             font-size: 12px;
             color: black;
+            min-height: 45px;
         }
 
         .red {
             background: #ff6b6b;
         }
 
-	.purple {
-    	    background: #c77dff;
-	}
+        .purple {
+            background: #c77dff;
+        }
 
         .green {
             background: #51cf66;
@@ -49,15 +171,47 @@
             background: #4dabf7;
         }
 
-        input, select, button {
-            padding: 8px;
-            margin: 5px;
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 15px;
+            font-size: 14px;
         }
 
-        .trade-box {
-            border: 1px solid black;
-            padding: 10px;
-            margin-bottom: 10px;
+        .legend span {
+            padding: 6px 10px;
+            border-radius: 6px;
+        }
+
+        .legend-red {
+            background: #ff6b6b;
+        }
+
+        .legend-green {
+            background: #51cf66;
+        }
+
+        .legend-yellow {
+            background: #ffd43b;
+        }
+
+        .legend-blue {
+            background: #4dabf7;
+        }
+
+        .legend-purple {
+            background: #c77dff;
+        }
+
+        @media (max-width: 900px) {
+            .stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
         }
 
     </style>
@@ -66,253 +220,305 @@
 
 <body>
 
-{% if message %}
+<div class="container">
 
-<div style="
-    background:#f1f3f5;
-    padding:12px;
-    border-radius:8px;
-    margin-bottom:20px;
-    font-size:18px;
-">
+    <h1>🏆 Panini Sticker Manager 2.0</h1>
 
-    {{message}}
-
-</div>
-
-{% endif %}
-
-
-
-
-
-<h1>🏆 Panini Sticker Manager</h1>
-
-<h2>Sticker hinzufügen</h2>
-
-<form action="/add" method="post">
-
-    <select id="teamSelect" onchange="updateNumbers()">
-
-        {% for key, team in sticker_data.items() %}
-
-        <option value="{{key}}">
-            {{key}}
-        </option>
-
-        {% endfor %}
-
-    </select>
-
-    <select id="numberSelect" name="sticker">
-    </select>
-
-    <button>Hinzufügen</button>
-    <button formaction="/remove" formmethod="post">
-        Entfernen
-    </button>
-
-</form>
-
-<div style="
-    display:flex;
-    gap:30px;
-    align-items:center;
-    margin-bottom:30px;
-    flex-wrap:wrap;
-">
-
-    <!-- Fortschritts-Kreis -->
-    <div style="
-        width:140px;
-        height:140px;
-        border-radius:50%;
-        background:
-        conic-gradient(
-            #51cf66 {{completion}}%,
-            #dee2e6 0%
-        );
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        font-size:28px;
-        font-weight:bold;
-        color:black;
-    ">
-
-        <div style="
-            width:100px;
-            height:100px;
-            border-radius:50%;
-            background:white;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-        ">
-            {{completion}}%
+    {% if message %}
+        <div class="message">
+            {{ message }}
         </div>
-
-    </div>
-
-    <!-- Statistik -->
-    <div style="font-size:18px; line-height:1.8;">
-
-        <div>✅ Einmal vorhanden: <b>{{owned}}</b> / {{total_stickers}}</div>
-
-        <div>❌ Fehlend: <b>{{missing}}</b></div>
-
-        <div>🟡 Doppelte Sticker: <b>{{duplicates}}</b></div>
-
-        <div>📦 Sticker insgesamt: <b>{{total_owned}}</b></div>
-
-    </div>
-
-</div>
-
-<hr>
-
-<h2>🔄 Neuer Tausch</h2>
-
-<form action="/trade" method="post">
-
-    <input name="give" placeholder="Ich gebe z.B. GER1,AUT2">
-
-    <input name="receive" placeholder="Ich bekomme z.B. BRA5">
-
-    <button>Tausch speichern</button>
-
-</form>
-
-<hr>
-
-<h2>⏳ Offene Tausch-Deals</h2>
-
-<p>Anzahl Trades: {{ trades|length }}</p>
-
-<pre>{{ trades }}</pre>
-
-{% for t in trades %}
-
-<div class="trade-box">
-
-    <b>Ich gebe:</b> {{ t.give_stickers }}<br>
-    <b>Ich bekomme:</b> {{ t.receive_stickers }}<br><br>
-
-    <a href="/confirm_trade/{{ t.id }}">
-        ✅ Bestätigen
-    </a>
-
-    &nbsp;&nbsp;
-
-    <a href="/delete_trade/{{ t.id }}">
-        ❌ Löschen
-    </a>
-
-</div>
-
-{% endfor %}
-<hr>
-
-<h2>⚠️ Reset</h2>
-
-<form action="/reset" method="post">
-
-    <input
-        type="password"
-        name="password"
-        placeholder="Passwort">
-
-    <button>
-        Reset durchführen
-    </button>
-
-</form>
-
-<hr>
-
-{% for key, team in sticker_data.items() %}
-
-<div class="team-row">
-
-    <h2>
-
-        <img
-            src="{{ url_for('static', filename='flags/' + key + '.png') }}"
-            width="32"
-            style="vertical-align: middle; margin-right: 8px;"
-        >
-
-        {{team.team}}
-
-    </h2>
-
-    <div class="grid">
-
-        {% for sticker in team.stickers %}
-
-        {% set count = collection.get(sticker, 0) %}
-
-        <div class="cell
-    {% if sticker in outgoing %}
-    	purple
-    {% elif sticker in incoming %}
-    	blue
-    {% elif count == 0 %}
-        red
-    {% elif count == 1 %}
-        green
-    {% else %}
-        yellow
     {% endif %}
-">
 
-            {{sticker}}<br>
-            {% if sticker in outgoing %}
-    		{{count - outgoing[sticker]}}+{{outgoing[sticker]}}
-	    {% else %}
-    		{{count}}
-	    {% endif %}
 
+    <div class="progress-wrapper">
+
+        <h2>📊 Sammlung: {{ completion }} % vollständig</h2>
+
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
         </div>
-
-        {% endfor %}
 
     </div>
 
+
+    <div class="stats">
+
+        <div class="stat">
+            <div class="stat-number">{{ total_stickers }}</div>
+            <div>Sticker insgesamt</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number">{{ owned }}</div>
+            <div>Verschiedene vorhanden</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number">{{ missing }}</div>
+            <div>Fehlend</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number">{{ duplicates }}</div>
+            <div>Doppelte</div>
+        </div>
+
+        <div class="stat">
+            <div class="stat-number">{{ total_owned }}</div>
+            <div>Sticker insgesamt im Besitz</div>
+        </div>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>➕ Sticker hinzufügen</h2>
+
+        <form action="/add" method="post">
+
+            <select name="team" id="teamSelect" required>
+
+                {% for key, team in sticker_data.items() %}
+
+                    <option value="{{ key }}">
+                        {{ key }}
+                    </option>
+
+                {% endfor %}
+
+            </select>
+
+            <select name="number" id="numberSelect" required></select>
+
+            <button type="submit">
+                Hinzufügen
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>🔄 Neuer Tausch</h2>
+
+        <form action="/trade" method="post">
+
+            <input
+                name="give"
+                placeholder="Ich gebe: GER1,AUT2"
+                required
+            >
+
+            <input
+                name="receive"
+                placeholder="Ich bekomme: BRA5"
+                required
+            >
+
+            <button type="submit">
+                Tausch speichern
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>⏳ Offene Tausch-Deals</h2>
+
+        {% if trades %}
+
+            {% for t in trades %}
+
+                <div class="trade-box">
+
+                    <b>Ich gebe:</b>
+                    {{ t["give_stickers"] }}
+                    <br>
+
+                    <b>Ich bekomme:</b>
+                    {{ t["receive_stickers"] }}
+                    <br>
+
+                    <a href="/confirm_trade/{{ t['id'] }}">
+                        ✅ Bestätigen
+                    </a>
+
+                    <a href="/delete_trade/{{ t['id'] }}">
+                        ❌ Löschen
+                    </a>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>Keine offenen Tausch-Deals.</p>
+
+        {% endif %}
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>🗑️ Einzelnen Sticker entfernen</h2>
+
+        <form action="/delete_sticker" method="post">
+
+            <input
+                name="sticker"
+                placeholder="z.B. GER1"
+                required
+            >
+
+            <button type="submit">
+                Ein Exemplar entfernen
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>⚠️ Reset</h2>
+
+        <form action="/reset" method="post">
+
+            <input
+                type="password"
+                name="password"
+                placeholder="Passwort"
+                required
+            >
+
+            <button type="submit">
+                Reset durchführen
+            </button>
+
+        </form>
+
+    </div>
+
+
+    <div class="legend">
+
+        <span class="legend-red">🔴 Fehlt</span>
+        <span class="legend-green">🟢 Vorhanden</span>
+        <span class="legend-yellow">🟡 Doppelt</span>
+        <span class="legend-blue">🔵 Kommt durch Trade</span>
+        <span class="legend-purple">🟣 Geht durch Trade</span>
+
+    </div>
+
+
+    {% for key, team in sticker_data.items() %}
+
+        <div class="team-row">
+
+            <h2 class="team-title">
+
+                <img
+                    src="{{ url_for('static', filename='flags/' + key + '.png') }}"
+                    alt="{{ key }}"
+                >
+
+                <span>
+                    {{ key }} – {{ team["team"] }}
+                </span>
+
+            </h2>
+
+
+            <div class="grid">
+
+                {% for sticker in team["stickers"] %}
+
+                    {% set count = collection.get(sticker, 0) %}
+
+                    <div class="cell
+                        {% if sticker in outgoing %}
+                            purple
+                        {% elif sticker in incoming %}
+                            blue
+                        {% elif count == 0 %}
+                            red
+                        {% elif count == 1 %}
+                            green
+                        {% else %}
+                            yellow
+                        {% endif %}
+                    ">
+
+                        {{ sticker }}<br>
+
+                        {% if sticker in outgoing %}
+
+                            {{ count - outgoing[sticker] }}+{{ outgoing[sticker] }}
+
+                        {% else %}
+
+                            {{ count }}
+
+                        {% endif %}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    {% endfor %}
+
 </div>
 
-{% endfor %}
 
 <script>
 
-const stickerData = {{ sticker_data | tojson }};
+    const stickerData = {{ sticker_data | tojson }};
 
-function updateNumbers() {
-
-    const team = document.getElementById("teamSelect").value;
-
+    const teamSelect = document.getElementById("teamSelect");
     const numberSelect = document.getElementById("numberSelect");
 
-    numberSelect.innerHTML = "";
+    function updateNumbers() {
 
-    const stickers = stickerData[team].stickers;
+        const team = teamSelect.value;
+        const stickers = stickerData[team].stickers;
 
-    stickers.forEach(sticker => {
+        numberSelect.innerHTML = "";
 
-        const option = document.createElement("option");
+        stickers.forEach(sticker => {
 
-        option.value = sticker;
+            const number = sticker.replace(team, "");
 
-        option.text = sticker.replace(team, "");
+            const option = document.createElement("option");
 
-        numberSelect.appendChild(option);
+            option.value = number;
+            option.textContent = number;
 
-    });
-}
+            numberSelect.appendChild(option);
 
-updateNumbers();
+        });
+
+    }
+
+    teamSelect.addEventListener("change", updateNumbers);
+
+    updateNumbers();
 
 </script>
 
 </body>
+
 </html>
